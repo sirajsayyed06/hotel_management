@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Motel Management System - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Pacifico&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="min-h-screen bg-black text-green-400 font-['Poppins']">
+    <div class="flex min-h-screen dashboard-container">
+        <!-- Sidebar -->
+        <div id="sidebar"
+            class="fixed left-0 top-0 h-full w-64 bg-black shadow-lg transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
+            <div class="p-5 border-b border-gray-600">
+                <h2 class="text-center text-2xl font-normal text-white" style="font-family: 'Pacifico', cursive;"
+                    id="sidebarLabel">HotelMS</h2>
+                <button class="lg:hidden absolute right-4 top-4 text-white text-xl cursor-pointer hover:text-gray-300"
+                    onclick="toggleSidebar()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <ul class="p-5 space-y-2 sidebar-menu">
+                <li><a href="#"
+                        class="active flex items-center text-white no-underline p-3 rounded hover:bg-gray-700 active:bg-gray-700 transition-colors"><i
+                            class="fas fa-tachometer-alt mr-3 w-5 text-center"></i> Dashboard</a></li>
+                <li><a href="{% url "room_inventory" %}"
+                        class="flex items-center text-white no-underline p-3 rounded hover:bg-gray-700 transition-colors"><i
+                            class="fas fa-bed mr-3 w-5 text-center"></i> Room Inventory</a></li>
+                <li><a href="{% url "bookings_view" %}"
+                        class="flex items-center text-white no-underline p-3 rounded hover:bg-gray-700 transition-colors"><i
+                            class="fas fa-calendar-check mr-3 w-5 text-center"></i> Bookings</a></li>
+                <li><a href="{% url "guest_view" %}"
+                        class="flex items-center text-white no-underline p-3 rounded hover:bg-gray-700 transition-colors"><i
+                            class="fas fa-users mr-3 w-5 text-center"></i> Guests</a></li>
+                <li><a href="{% url "checkin_view" %}"
+                        class="flex items-center text-white no-underline p-3 rounded hover:bg-gray-700 transition-colors"><i
+                            class="fas fa-sign-in-alt mr-3 w-5 text-center"></i> Check-in</a></li>
+                <li><a href="{% url "checkout_view" %}"
+                        class="flex items-center text-white no-underline p-3 rounded hover:bg-gray-700 transition-colors"><i
+                            class="fas fa-sign-out-alt mr-3 w-5 text-center"></i> Check-out</a></li>
+            </ul>
+        </div>
+
+        <!-- Overlay for mobile sidebar -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden" onclick="toggleSidebar()">
+        </div>
+
+        <main class="flex-1 lg:ml-64 p-4 lg:p-8 main-content bg-black transition-all">
+            <!-- Header -->
+            <nav
+                class="flex flex-col sm:flex-row justify-between items-center mb-8 pb-4 border-b border-gray-600 bg-black/80 rounded-lg gap-3 sm:gap-0">
+                <div class="flex items-center gap-4 w-full sm:w-auto justify-between">
+                    <button
+                        class="hamburger-btn block lg:hidden bg-transparent border-none text-white text-3xl cursor-pointer p-2 rounded hover:bg-white/10"
+                        onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="w-full flex justify-center">
+                        <a class="text-xl font-bold text-white" href="#"
+                            style="font-family: 'Pacifico', cursive;">Dashboard</a>
+                    </div>
+                </div>
+                <div
+                    class="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 w-full sm:w-auto text-center sm:text-left">
+                    <span class="text-white text-lg truncate" id="welcomeUser"></span>
+                    <button
+                        class="logout-btn bg-red-600 text-white px-4 py-2 rounded cursor-pointer hover:bg-red-700 transition-colors"
+                        onclick="window.location.href='{% url "logout" %}'">Logout</button>
+                </div>
+            </nav>
+
+            <div class="py-4">
+                <!-- Stats Grid -->
+                <!-- Updated Stats Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 stats-grid">
+                    <div class="stat-card bg-gray-800 rounded-xl p-6 text-center border-l-4 border-green-500 h-full">
+                        <div>
+                            <h3 class="text-3xl font-bold text-white mb-2">{{ occupancy_rate }}%</h3>
+                            <p class="text-white text-sm uppercase tracking-wider">Occupancy Rate</p>
+                            <p class="text-gray-400 text-xs mt-1">{{ occupied_rooms }}/{{ total_rooms }} rooms occupied
+                            </p>
+                        </div>
+                    </div>
+                    <div class="stat-card bg-gray-800 rounded-xl p-6 text-center border-l-4 border-yellow-500 h-full">
+                        <div>
+                            <h3 class="text-3xl font-bold text-white mb-2">₹{{ today_revenue }}</h3>
+                            <p class="text-white text-sm uppercase tracking-wider">Today's Revenue</p>
+                            <p class="text-gray-400 text-xs mt-1">From {{ today_checkins }} check-ins</p>
+                        </div>
+                    </div>
+                    <div class="stat-card bg-gray-800 rounded-xl p-6 text-center border-l-4 border-cyan-500 h-full">
+                        <div>
+                            <h3 class="text-3xl font-bold text-white mb-2">{{ total_bookings }}</h3>
+                            <p class="text-white text-sm uppercase tracking-wider">Total Bookings</p>
+                            <p class="text-gray-400 text-xs mt-1">All time reservations</p>
+                        </div>
+                    </div>
+                    <div class="stat-card bg-gray-800 rounded-xl p-6 text-center border-l-4 border-orange-500 h-full">
+                        <div>
+                            <h3 class="text-3xl font-bold text-white mb-2">{{ current_guests }}</h3>
+                            <p class="text-white text-sm uppercase tracking-wider">Current Guests</p>
+                            <p class="text-gray-400 text-xs mt-1">Active check-ins</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Updated Quick Actions (fix URLs) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 quick-actions">
+                    <div class="action-card bg-gray-800 rounded-xl p-5 text-center cursor-pointer hover:bg-gray-700 hover:-translate-y-1 transition-all border border-gray-600 shadow-md h-full flex flex-col items-center justify-center"
+                        onclick="window.location.href='{% url "checkin_view" %}'">
+                        <i class="fas fa-sign-in-alt text-4xl text-white mb-3"></i>
+                        <h4 class="text-xl font-semibold text-white mb-2">Check-in Guest</h4>
+                        <p class="text-white text-sm">Process new guest arrivals</p>
+                    </div>
+                    <div class="action-card bg-gray-800 rounded-xl p-5 text-center cursor-pointer hover:bg-gray-700 hover:-translate-y-1 transition-all border border-gray-600 shadow-md h-full flex flex-col items-center justify-center"
+                        onclick="window.location.href='{% url 'bookings_view' %}'">
+                        <i class="fas fa-plus-circle text-4xl text-white mb-3"></i>
+                        <h4 class="text-xl font-semibold text-white mb-2">New Booking</h4>
+                        <p class="text-white text-sm">Create a new reservation</p>
+                    </div>
+                    <div class="action-card bg-gray-800 rounded-xl p-5 text-center cursor-pointer hover:bg-gray-700 hover:-translate-y-1 transition-all border border-gray-600 shadow-md h-full flex flex-col items-center justify-center"
+                        onclick="window.location.href='{% url 'room_inventory' %}'">
+                        <i class="fas fa-bed text-4xl text-white mb-3"></i>
+                        <h4 class="text-xl font-semibold text-white mb-2">Manage Rooms</h4>
+                        <p class="text-white text-sm">Update room inventory</p>
+                    </div>
+                    <div class="action-card bg-gray-800 rounded-xl p-5 text-center cursor-pointer hover:bg-gray-700 hover:-translate-y-1 transition-all border border-gray-600 shadow-md h-full flex flex-col items-center justify-center"
+                        onclick="window.location.href='{% url 'checkout_view' %}'">
+                        <i class="fas fa-sign-out-alt text-4xl text-white mb-3"></i>
+                        <h4 class="text-xl font-semibold text-white mb-2">Check-out</h4>
+                        <p class="text-white text-sm">Process guest departures</p>
+                    </div>
+                </div>
+
+                <!-- Updated Recent Activity with Real Data -->
+                <div class="recent-activity bg-gray-800 rounded-xl p-6 border border-gray-600 shadow-md">
+                    <div class="flex justify-between items-center mb-5">
+                        <h3 class="text-2xl font-semibold text-white">Recent Activity</h3>
+                        <span class="text-gray-400 text-sm">Last 6 hours</span>
+                    </div>
+
+                    {% if recent_activities %}
+                    <ul class="space-y-4 activity-list">
+                        {% for activity in recent_activities %}
+                        <li class="flex items-center activity-item py-2 border-b border-gray-600 last:border-b-0">
+                            <div class="activity-icon w-8 h-8 rounded-full 
+                {% if activity.type == 'checkin' %}bg-green-600
+                {% elif activity.type == 'checkout' %}bg-blue-600
+                {% else %}bg-purple-600{% endif %} 
+                flex items-center justify-center mr-4">
+                                <i class="{{ activity.icon }} text-white text-sm"></i>
+                            </div>
+                            <div class="activity-content flex-1">
+                                <div class="text-white font-semibold">{{ activity.message }}</div>
+                                <div class="text-gray-400 text-sm">
+                                    {{ activity.time|timesince }} ago
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-clock text-4xl text-gray-500 mb-3"></i>
+                        <p class="text-gray-400">No recent activity</p>
+                        <p class="text-gray-500 text-sm mt-1">Activities will appear here as they happen</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+    </div>
+    </main>
+    </div>
+
+    <script>// Auto-refresh dashboard every 60 seconds
+        function refreshDashboard() {
+            setTimeout(() => {
+                window.location.reload();
+            }, 60000); // 60 seconds
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('Dashboard loaded successfully');
+
+            // Add hover effects to stat cards
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach(card => {
+                card.addEventListener('mouseenter', function () {
+                    this.style.transform = 'translateY(-5px)';
+                    this.style.transition = 'all 0.3s ease';
+                });
+
+                card.addEventListener('mouseleave', function () {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+
+            // Start auto-refresh
+            refreshDashboard();
+
+            // Update welcome message with current time
+            updateWelcomeMessage();
+        });
+
+        function updateWelcomeMessage() {
+            const hour = new Date().getHours();
+            let greeting = 'Welcome';
+
+            if (hour < 12) greeting = 'Good morning';
+            else if (hour < 18) greeting = 'Good afternoon';
+            else greeting = 'Good evening';
+
+            const welcomeElement = document.getElementById('welcomeUser');
+            if (welcomeElement) {
+                welcomeElement.textContent = `${greeting}, {{ user.username }}`;
+            }
+        }
+
+        // Sidebar functionality
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }</script>
+</body>
+
+</html>
