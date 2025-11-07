@@ -75,8 +75,12 @@ WSGI_APPLICATION = 'hotel_management.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'hotelmanagement_q0bd',
+        'USER': 'pirate',
+        'PASSWORD': 'R0Y5CMARBdsjanD2bKYyBAmrC5NetOK5',
+        'HOST': 'dpg-d472ln8gjchc73eqpu60-a',  # or your database host
+        'PORT': '5432',       # default PostgreSQL port
     }
 }
 
@@ -125,6 +129,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = [ BASE_DIR / 'media' ]
+
 
 
 
