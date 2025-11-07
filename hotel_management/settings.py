@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-y3v+*b8c^zi&)dm*+7)#u_k&05r&83(rat0+-_6s$v*en&j#d7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["https://hotel-management-3uoi.onrender.com"]
 
 
 # Application definition
@@ -125,4 +125,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = [ BASE_DIR / 'media' ]
+
 
