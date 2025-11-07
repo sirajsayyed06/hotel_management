@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-y3v+*b8c^zi&)dm*+7)#u_k&05r&83(rat0+-_6s$v*en&j#d7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["https://hotel-management-3uoi.onrender.com"]
+ALLOWED_HOSTS = ["hotel-management-3uoi.onrender.com"]
 
 
 # Application definition
@@ -116,7 +116,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [ BASE_DIR / 'static' ]
+STATICFILES_DIRS = [ BASE_DIR / '/static/' ]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -125,6 +125,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = [ BASE_DIR / 'media' ]
+
 
 
 
