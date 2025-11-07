@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+{% block content %}
+<body class="bg-gray-900 text-white min-h-screen font-['Poppins']">
+    <div class="bg-gray-800 rounded-xl p-5 mb-5 border border-gray-600">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+            <div class="text-center border-l-4 border-r-4 border-green-500 px-4">
+                <span class="block text-2xl font-bold text-white" id="total-rooms">{{total_rooms}}</span>
+                <span class="text-xs uppercase text-green-300">TOTAL ROOM</span>
+            </div>
+
+            <div class="text-center border-l-4 border-r-4 border-yellow-500 px-4">
+                <span class="block text-2xl font-bold text-white" id="available-rooms">{{available}}</span>
+                <span class="text-xs uppercase text-yellow-300">AVAILABLE ROOM</span>
+            </div>
+
+            <div class="text-center border-l-4 border-r-4 border-cyan-500 px-4">
+                <span class="block text-2xl font-bold text-white" id="occupied-rooms">{{occupied}}</span>
+                <span class="text-xs uppercase text-cyan-300">OPCCUIED ROOM</span>
+            </div>
+
+            <div class="text-center border-l-4 border-r-4 border-orange-500 px-4">
+                <span class="block text-2xl font-bold text-white" id="maintenance-rooms">{{maintenance}}</span>
+                <span class="text-xs uppercase text-orange-300">Early Check-outs</span>
+            </div>
+
+        </div>
+    </div>
+    <!-- Room Sections -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 checkin-sections">
+        <!-- New Check-in Form Section -->
+        <div class="lg:col-span-4 bg-gray-800 rounded-lg p-6 border border-gray-600 shadow-md checkin-form-section">
+            <h2 class="text-2xl font-semibold mb-5 flex items-center">
+                <i class="fas fa-plus-circle mr-2"></i> Add New Room
+            </h2>
+            <form id="addRoomForm" method="POST">
+                {% csrf_token %}
+                <!-- Room Number and Name -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                    <div>
+                        <label for="roomNumber" class="block text-sm font-medium text-gray-300 mb-1">Room Number
+                            *</label>
+                        <input type="text" id="roomNumber" name="roomNumber" required placeholder="e.g., 101, 201A"
+                            class="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base">
+                    </div>
+                    <div>
+                        <label for="roomName" class="block text-sm font-medium text-gray-300 mb-1">Room Name *</label>
+                        <input type="text" id="roomName" name="roomName" required
+                            placeholder="e.g., Deluxe Suite, Standard Room"
+                            class="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base">
+                    </div>
+                </div>
+
+                <!-- Room Type and Capacity -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                    <div>
+                        <label for="roomType" class="block text-sm font-medium text-gray-300 mb-1">Room Type *</label>
+                        <select id="roomType" name="roomType" required
+                            class="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base">
+                            <option value="">Select Room Type</option>
+                            <option value="standard">Standard</option>
+                            <option value="deluxe">Deluxe</option>
+                            <option value="suite">Suite</option>
+                            <option value="presidential">Family</option>
+                            <option value="executive">Executive</option>
+
+                        </select>
+                    </div>
+                    <div>
+                        <label for="capacity" class="block text-sm font-medium text-gray-300 mb-1">Capacity *</label>
+                        <select id="capacity" name="capacity" required
+                            class="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base">
+                            <option value="">Select Capacity</option>
+                            <option value="1">1 Person</option>
+                            <option value="2">2 People</option>
+                            <option value="3">3 People</option>
+                            <option value="4">4 People</option>
+                            <option value="5">5 People</option>
+                            <option value="6">6+ People</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Price and Status -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                    <div>
+                        <label for="price" class="block text-sm font-medium text-gray-300 mb-1">Price per Night
+                            (₹)</label>
+                        <input type="number" id="price" name="price" min="0" step="0.01" placeholder="e.g., 150.00"
+                            class="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base">
+                    </div>
+                    <div>
+                        <label for="status" class="block text-sm font-medium text-gray-300 mb-1">Status</label>
+                        <select id="status" name="status"
+                            class="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base">
+                            <option value="available">Available</option>
+                            <option value="occupied">Occupied</option>
+                            <option value="maintenance">Maintenance</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Amenities and Description -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                    <div>
+                        <label for="amenities" class="block text-sm font-medium text-gray-300 mb-1">Amenities</label>
+                        <input type="text" id="amenities" name="amenities" placeholder="WiFi, AC, TV, Mini Bar, etc."
+                            class="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base">
+                    </div>
+                    <div>
+                        <label for="description"
+                            class="block text-sm font-medium text-gray-300 mb-1">Description</label>
+                        <textarea id="description" name="description" rows="3"
+                            placeholder="Room description and special features"
+                            class="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none min-h-[80px]"></textarea>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex justify-end space-x-3">
+                    <button type="submit"
+                        class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold">
+                        <i class="fas fa-plus mr-1"></i> Add Room
+                    </button>
+                    <button type="reset"
+                        class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-semibold">
+                        <i class="fas fa-undo mr-1"></i> Reset Form
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Recent Rooms -->
+        <div class="lg:col-span-8 bg-gray-800 rounded-lg p-6 border border-gray-600 shadow-md current-checkins-section">
+            <h2 class="text-2xl font-semibold mb-4 flex items-center">
+                <i class="fas fa-list mr-2"></i> Room Inventory
+            </h2>
+
+            <!-- Filters -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4 filters">
+                <div>
+                    <label for="statusFilter" class="block text-sm font-medium text-gray-300 mb-1">Status</label>
+                    <select id="statusFilter"
+                        class="w-full p-2 border border-gray-600 rounded-lg bg-gray-700 text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">All Status</option>
+                        <option value="available">Available</option>
+                        <option value="occupied">Occupied</option>
+                        <option value="maintenance">Maintenance</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="roomSearch" class="block text-sm font-medium text-gray-300 mb-1">Search Room</label>
+                    <input type="text" id="roomSearch" placeholder="Search by number"
+                        class="w-full p-2 border border-gray-600 rounded-lg bg-gray-700 text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label for="typeFilter" class="block text-sm font-medium text-gray-300 mb-1">Type</label>
+                    <select id="typeFilter"
+                        class="w-full p-2 border border-gray-600 rounded-lg bg-gray-700 text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">All Types</option>
+                        <option value="standard">Standard</option>
+                        <option value="deluxe">Deluxe</option>
+                        <option value="suite">Suite</option>
+                        <option value="executive">Executive</option>
+                        <option value="presidential">Presidential</option>
+                    </select>
+                </div>
+            </div>
+            <!-- Table Container -->
+            <div class="bg-gray-800 rounded-lg border border-gray-600 shadow-md overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table id="roomsTable" class="w-full">
+                        <thead class="bg-gray-700">
+                            <tr>
+                                <th class="p-3 text-left text-sm font-semibold text-gray-300">Room NO</th>
+                                <th class="p-3 text-left text-sm font-semibold text-gray-300">Name</th>
+                                <th class="p-3 text-left text-sm font-semibold text-gray-300">Type</th>
+                                <th class="p-3 text-left text-sm font-semibold text-gray-300">Capacity</th>
+                                <th class="p-3 text-left text-sm font-semibold text-gray-300">Price</th>
+                                <th class="p-3 text-left text-sm font-semibold text-gray-300">Status</th>
+                                <th class="p-3 text-left text-sm font-semibold text-gray-300">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="roomsTableBody" class="divide-y divide-gray-600">
+                            {% for room in rooms%}
+                            <tr class="hover:bg-gray-700">
+                                <td class="p-3 text-sm">{{room.room_number}}</td>
+                                <td class="p-3 text-sm">{{room.room_name}}</td>
+                                <td class="p-3 text-sm">{{room.room_type}}</td>
+                                <td class="p-3 text-sm">{{room.capacity}}</td>
+                                <td class="p-3 text-sm">{{room.price_per_night}}</td>
+                                <td class="p-3 text-sm"><span class="inline-block px-2 py-1 rounded text-xs bg-gray-500 text-gray-200">{{room.status }}</span></td>
+                                <!-- Room edit or deleteRoom-->
+                                <td class="p-3">
+                                    <div class="flex space-x-1 actions">
+                                        <a href="{% url " edit_room" room.room_number %}"
+                                            class="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'delete_room' room.room_number %}"
+                                            class="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 transition-colors"
+                                            onclick="return confirm('Are you sure you want to delete this room?')">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {%endfor%}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <script>// Enhanced filter with debouncing for search
+        document.addEventListener('DOMContentLoaded', function () {
+            const statusFilter = document.getElementById('statusFilter');
+            const typeFilter = document.getElementById('typeFilter');
+            const roomSearch = document.getElementById('roomSearch');
+            const roomsTableBody = document.getElementById('roomsTableBody');
+
+            let filterTimeout;
+
+            function filterRooms() {
+                const statusValue = statusFilter.value.toLowerCase();
+                const typeValue = typeFilter.value.toLowerCase();
+                const searchValue = roomSearch.value.toLowerCase();
+                const rows = roomsTableBody.getElementsByTagName('tr');
+
+                let visibleCount = 0;
+
+                for (let row of rows) {
+                    const roomNumber = row.cells[0].textContent.toLowerCase();
+                    const roomName = row.cells[1].textContent.toLowerCase();
+                    const roomType = row.cells[2].textContent.toLowerCase();
+                    const roomStatus = row.cells[5].textContent.toLowerCase();
+
+                    const matchesStatus = !statusValue || roomStatus.includes(statusValue);
+                    const matchesType = !typeValue || roomType.includes(typeValue);
+                    const matchesSearch = !searchValue ||
+                        roomNumber.includes(searchValue) ||
+                        roomName.includes(searchValue);
+
+                    if (matchesStatus && matchesType && matchesSearch) {
+                        row.style.display = '';
+                        visibleCount++;
+
+                        // Add animation for better UX
+                        row.style.animation = 'fadeIn 0.3s ease-in';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+
+                // Show "no results" message if needed
+                showNoResultsMessage(visibleCount === 0);
+            }
+
+            function showNoResultsMessage(show) {
+                let noResultsRow = document.getElementById('noResultsRow');
+
+                if (show && !noResultsRow) {
+                    noResultsRow = document.createElement('tr');
+                    noResultsRow.id = 'noResultsRow';
+                    noResultsRow.innerHTML = `
+                <td colspan="7" class="p-4 text-center text-gray-400">
+                    <i class="fas fa-search mr-2"></i>
+                    No rooms found matching your filters
+                </td>
+            `;
+                    roomsTableBody.appendChild(noResultsRow);
+                } else if (!show && noResultsRow) {
+                    noResultsRow.remove();
+                }
+            }
+
+            // Debounced search for better performance
+            roomSearch.addEventListener('input', function () {
+                clearTimeout(filterTimeout);
+                filterTimeout = setTimeout(filterRooms, 300);
+            });
+
+            statusFilter.addEventListener('change', filterRooms);
+            typeFilter.addEventListener('change', filterRooms);
+
+            // Add some CSS for animations
+            const style = document.createElement('style');
+            style.textContent = `
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }`;
+            document.head.appendChild(style);
+            filterRooms(); // Initial filter
+        });</script>
+</body>
+{% endblock %}

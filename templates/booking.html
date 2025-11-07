@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hotel Management System - Bookings</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Pacifico&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'hotel-green': '#10b981',
+                        'hotel-red': '#ef4444',
+                        'hotel-yellow': '#f59e0b',
+                        'hotel-blue': '#3b82f6',
+                        'hotel-purple': '#8b5cf6',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .font-poppins {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .font-pacifico {
+            font-family: 'Pacifico', cursive;
+        }
+
+        .status-confirmed {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+        .status-checked_in {
+            background-color: #10b981;
+            color: white;
+        }
+
+        .status-checked_out {
+            background-color: #6b7280;
+            color: white;
+        }
+
+        .status-cancelled {
+            background-color: #ef4444;
+            color: white;
+        }
+
+        .room-grid-container {
+            scrollbar-width: thin;
+            scrollbar-color: #4b5563 #1f2937;
+        }
+
+        .room-grid-container::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .room-grid-container::-webkit-scrollbar-track {
+            background: #1f2937;
+            border-radius: 4px;
+        }
+
+        .room-grid-container::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 4px;
+        }
+
+        .room-grid-container::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-white min-h-screen font-poppins">
+    <div class="max-w-7xl mx-auto p-4">
+        <div class="flex justify-between items-center mb-8 pb-6 border-b border-gray-600">
+            <h1 class="text-3xl font-bold">Bookings Management</h1>
+            <a href="{% url 'dashboard' %}"
+                class="inline-flex items-center px-4 py-2 border border-gray-600 text-gray-300 rounded hover:bg-gray-700 transition-colors">
+                <i class="fas fa-arrow-left mr-1"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <!-- Stats and Filters -->
+        <div class="bg-gray-800 rounded-xl p-6 mb-6 border border-gray-600">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6">
+                <div>
+                    <h3 class="text-xl font-semibold mb-2">All Bookings</h3>
+                    <p class="text-gray-400">Total: {{ total_bookings }} bookings</p>
+                </div>
+
+                <!-- Filter Buttons -->
+                <div class="flex flex-wrap gap-2 mt-4 lg:mt-0">
+                    <a href="?filter=all"
+                        class="px-4 py-2 rounded-lg border {% if current_filter == 'all' %}bg-blue-600 border-blue-600{% else %}border-gray-600 hover:bg-gray-700{% endif %} transition-colors">
+                        All Time
+                    </a>
+                    <a href="?filter=today"
+                        class="px-4 py-2 rounded-lg border {% if current_filter == 'today' %}bg-blue-600 border-blue-600{% else %}border-gray-600 hover:bg-gray-700{% endif %} transition-colors">
+                        Today
+                    </a>
+                    <a href="?filter=week"
+                        class="px-4 py-2 rounded-lg border {% if current_filter == 'week' %}bg-blue-600 border-blue-600{% else %}border-gray-600 hover:bg-gray-700{% endif %} transition-colors">
+                        Last Week
+                    </a>
+                    <a href="?filter=month"
+                        class="px-4 py-2 rounded-lg border {% if current_filter == 'month' %}bg-blue-600 border-blue-600{% else %}border-gray-600 hover:bg-gray-700{% endif %} transition-colors">
+                        Last Month
+                    </a>
+                    <a href="?filter=3months"
+                        class="px-4 py-2 rounded-lg border {% if current_filter == '3months' %}bg-blue-600 border-blue-600{% else %}border-gray-600 hover:bg-gray-700{% endif %} transition-colors">
+                        3 Months
+                    </a>
+                    <a href="?filter=6months"
+                        class="px-4 py-2 rounded-lg border {% if current_filter == '6months' %}bg-blue-600 border-blue-600{% else %}border-gray-600 hover:bg-gray-700{% endif %} transition-colors">
+                        6 Months
+                    </a>
+                </div>
+
+                {% comment %} <div>
+                    <label for="GuestSearch" class="block text-sm font-medium text-gray-300 mb-1">Search Guest</label>
+                    <input type="text" id="GuestSearch" placeholder="Search by Name"
+                        class="w-full p-2 border border-gray-600 rounded-lg bg-gray-700 text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div> {% endcomment %}
+            </div>
+
+            <!-- Status Legend -->
+            <div class="flex flex-wrap gap-4 mb-6">
+                <div class="flex items-center">
+                    <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                    <span class="text-sm">Confirmed</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                    <span class="text-sm">Checked In</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-3 h-3 bg-gray-500 rounded-full mr-2"></div>
+                    <span class="text-sm">Checked Out</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                    <span class="text-sm">Cancelled</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Display Messages -->
+        {% if messages %}
+        <div class="mb-6">
+            {% for message in messages %}
+            <div
+                class="p-3 rounded-lg {% if message.tags == 'error' %}bg-red-600{% else %}bg-green-600{% endif %} text-white">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Bookings Table -->
+        <div class="bg-gray-800 rounded-lg border border-gray-600 shadow-md overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-700">
+                        <tr>
+                            <th class="p-3 text-left text-sm font-semibold text-gray-300">#</th>
+                            <th class="p-3 text-left text-sm font-semibold text-gray-300">Booking ID</th>
+                            <th class="p-3 text-left text-sm font-semibold text-gray-300">Room</th>
+                            <th class="p-3 text-left text-sm font-semibold text-gray-300">Guest Name</th>
+                            <th class="p-3 text-left text-sm font-semibold text-gray-300">Email</th>
+                            <th class="p-3 text-left text-sm font-semibold text-gray-300">Phone</th>
+                            <th class="p-3 text-left text-sm font-semibold text-gray-300">Status</th>
+                            <th class="p-3 text-left text-sm font-semibold text-gray-300">Check-in</th>
+                            <th class="p-3 text-left text-sm font-semibold text-gray-300">Check-out</th>
+                            <th class="p-3 text-left text-sm font-semibold text-gray-300">Nights</th>
+                            <th class="p-3 text-left text-sm font-semibold text-gray-300">Total Amount</th>
+                            <th class="p-3 text-left text-sm font-semibold text-gray-300">Booking Date</th>
+                            <th class="p-3 text-left text-sm font-semibold text-gray-300">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-600">
+                        {% for booking in bookings %}
+                        <tr class="hover:bg-gray-700 transition-colors">
+                            <td class="p-3 text-sm font-medium">{{ forloop.counter }}</td>
+                            <td class="p-3 text-sm font-mono text-blue-400">{{ booking.booking_id }}</td>
+                            <td class="p-3 text-sm">
+                                <div class="font-semibold">Room {{ booking.room.room_number }}</div>
+                                <div class="text-xs text-gray-400">{{ booking.get_room_type_display }}</div>
+                            </td>
+                            <td class="p-3 text-sm">
+                                {{ booking.guest.first_name }} {{ booking.guest.last_name }}
+                                <div class="text-xs text-gray-400">{{ booking.guest.guest_id }}</div>
+                            </td>
+                            <td class="p-3 text-sm">{{ booking.guest.email }}</td>
+                            <td class="p-3 text-sm">{{ booking.guest.phone }}</td>
+                            <td class="p-3 text-sm">
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold 
+                                    {% if booking.status == 'confirmed' %}status-confirmed
+                                    {% elif booking.status == 'checked_in' %}status-checked_in
+                                    {% elif booking.status == 'checked_out' %}status-checked_out
+                                    {% else %}status-cancelled{% endif %}">
+                                    {{ booking.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="p-3 text-sm">{{ booking.check_in_date }}</td>
+                            <td class="p-3 text-sm">{{ booking.check_out_date }}</td>
+                            <td class="p-3 text-sm text-center">{{ booking.number_of_nights }}</td>
+                            <td class="p-3 text-sm font-semibold">${{ booking.total_amount }}</td>
+                            <td class="p-3 text-sm">{{ booking.created_at|date:"M d, Y" }}</td>
+                            <td class="p-3 text-sm">
+                                <div class="flex space-x-2">
+                                    {% if booking.status == 'confirmed' %}
+                                    <button class="text-green-400 hover:text-green-300 transition-colors"
+                                        title="Check In">
+                                        <i class="fas fa-sign-in-alt"></i>
+                                    </button>
+                                    {% endif %}
+                                    {% if booking.status == 'checked_in' %}
+                                    <button class="text-blue-400 hover:text-blue-300 transition-colors"
+                                        title="Check Out">
+                                        <i class="fas fa-sign-out-alt"></i>
+                                    </button>
+                                    {% endif %}
+                                    <button class="text-yellow-400 hover:text-yellow-300 transition-colors"
+                                        title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="text-red-400 hover:text-red-300 transition-colors" title="Cancel">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="13" class="p-6 text-center text-gray-400">
+                                <i class="fas fa-inbox text-4xl mb-2 block"></i>
+                                No bookings found for the selected filter
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination (optional) -->
+        {% if bookings.has_other_pages %}
+        <div class="mt-6 flex justify-center">
+            <div class="flex space-x-2">
+                {% if bookings.has_previous %}
+                <a href="?filter={{ current_filter }}&page={{ bookings.previous_page_number }}"
+                    class="px-3 py-2 border border-gray-600 rounded hover:bg-gray-700 transition-colors">
+                    Previous
+                </a>
+                {% endif %}
+
+                {% for num in bookings.paginator.page_range %}
+                <a href="?filter={{ current_filter }}&page={{ num }}"
+                    class="px-3 py-2 border border-gray-600 rounded {% if bookings.number == num %}bg-blue-600 border-blue-600{% else %}hover:bg-gray-700{% endif %} transition-colors">
+                    {{ num }}
+                </a>
+                {% endfor %}
+
+                {% if bookings.has_next %}
+                <a href="?filter={{ current_filter }}&page={{ bookings.next_page_number }}"
+                    class="px-3 py-2 border border-gray-600 rounded hover:bg-gray-700 transition-colors">
+                    Next
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                row.addEventListener('click', function (e) {
+                    if (!e.target.closest('button')) {
+                        const bookingId = this.querySelector('td:nth-child(2)').textContent;
+                        console.log('Clicked booking:', bookingId);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
