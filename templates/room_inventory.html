@@ -41,7 +41,7 @@
             <h2 class="text-2xl font-semibold mb-5 flex items-center">
                 <i class="fas fa-plus-circle mr-2"></i> Add New Room
             </h2>
-            <form id="addRoomForm" method="POST">
+            <form method="POST">
                 {% csrf_token %}
                 <!-- Room Number and Name -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
@@ -304,3 +304,4 @@
         });</script>
 </body>
 </html>
+
