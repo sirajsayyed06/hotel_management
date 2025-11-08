@@ -133,8 +133,10 @@ MEDIA_ROOT = [ BASE_DIR / 'media' ]
 
 CSRF_TRUSTED_ORIGINS = [
     "https://hotel-management-wx6f.onrender.com",
+    "https://hotel-management-wx6f.onrender.com/rooms/", 
 ]
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
+
