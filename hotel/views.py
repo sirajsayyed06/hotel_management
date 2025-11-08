@@ -147,7 +147,7 @@ def room_inventory(request):
             description=description
         )
         messages.success(request, f"Room {room_num} added successfully!")
-    return redirect('room_inventory')
+        return redirect('room_inventory')
     
     rooms = Room.objects.all()
     total_rooms = rooms.count()
@@ -491,3 +491,4 @@ def guest_view(request):
     }
 
     return render(request, 'guest.html', context)
+
