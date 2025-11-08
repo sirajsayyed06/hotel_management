@@ -1,4 +1,4 @@
-,from django.http import JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -491,6 +491,7 @@ def guest_view(request):
     }
 
     return render(request, 'guest.html', context)
+
 
 
 
