@@ -1,5 +1,13 @@
-{% extends "base.html" %}
-{% block content %}
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Pacifico&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>{% block title %}{% endblock %}</title>
+    <meta http-equiv="refresh" content="120">
+</head>
 <body class="bg-gray-900 text-white min-h-screen font-['Poppins']">
     <div class="bg-gray-800 rounded-xl p-5 mb-5 border border-gray-600">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -295,4 +303,4 @@
             filterRooms(); // Initial filter
         });</script>
 </body>
-{% endblock %}
+</html>
