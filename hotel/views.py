@@ -685,7 +685,7 @@ def guest_view(request):
             'bookings',
             queryset=Booking.objects.prefetch_related(
                 Prefetch(
-                    'checkins',
+                    
                     queryset=CheckIn.objects.all().order_by('-actual_check_in')
                 )
             ).order_by('-check_in_date')
@@ -806,6 +806,7 @@ def guest_search_api(request):
         return JsonResponse({'results': results})
     
     return JsonResponse({'results': []})
+
 
 
 
