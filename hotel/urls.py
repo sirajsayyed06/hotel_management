@@ -30,5 +30,11 @@ urlpatterns = [
     path('guest/<str:guest_id>/toggle-status/', views.toggle_guest_status, name='toggle_guest_status'),
     path('api/guest-search/', views.guest_search_api, name='guest_search_api'),
 
+    path('guest/<str:guest_id>/toggle-vip/', views.toggle_guest_vip, name='toggle_guest_vip'),
+    path('bookings/', views.bookings_management, name='bookings_management'),
+    path('bookings/add/', views.add_booking, name='add_booking'),
+    path('bookings/cancel/<str:booking_id>/', views.cancel_booking, name='cancel_booking'),
+    path('bookings/checkin/<str:booking_id>/', views.process_checkin_from_booking, name='process_checkin_from_booking'),
 ]
+
 
