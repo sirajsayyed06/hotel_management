@@ -153,18 +153,6 @@
             </div>
         </div>
 
-        <!-- Display Messages -->
-        {% if messages %}
-        <div class="mb-6">
-            {% for message in messages %}
-            <div
-                class="p-3 rounded-lg {% if message.tags == 'error' %}bg-red-600{% else %}bg-green-600{% endif %} text-white">
-                {{ message }}
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
         <!-- Guests Table -->
         <div class="bg-gray-800 rounded-lg border border-gray-600 shadow-md overflow-hidden">
             <div class="overflow-x-auto">
@@ -355,5 +343,6 @@
         });
     </script>
 </body>
+
 
 </html>
