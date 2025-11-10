@@ -715,7 +715,7 @@ def guest_view(request):
     
     # Calculate statistics for the template
     active_guests_count = guests.filter(is_active=True).count()
-    vip_guests_count = guests.filter(is_vip=True).count() 
+    # vip_guests_count = guests.filter(is_vip=True).count() 
     
     # Calculate new guests this month
     current_month = timezone.now().month
@@ -806,6 +806,7 @@ def guest_search_api(request):
         return JsonResponse({'results': results})
     
     return JsonResponse({'results': []})
+
 
 
 
