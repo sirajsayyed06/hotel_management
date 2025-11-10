@@ -76,10 +76,10 @@ WSGI_APPLICATION = 'hotel_management.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'hotelmanagement_q0bd',
+        'NAME': 'hoteldb_4csw',
         'USER': 'pirate',
-        'PASSWORD': 'R0Y5CMARBdsjanD2bKYyBAmrC5NetOK5',
-        'HOST': 'dpg-d472ln8gjchc73eqpu60-a',  # or your database host
+        'PASSWORD': 'xmVpmbHetUq8enTzSp0sRZR9pAK4jvCL',
+        'HOST': 'dpg-d495dfshg0os738konig-a',  # or your database host
         'PORT': '5432',       # default PostgreSQL port
     }
 }
@@ -139,5 +139,6 @@ CSRF_TRUSTED_ORIGINS = [
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
+
 
 
