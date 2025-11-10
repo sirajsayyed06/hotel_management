@@ -19,4 +19,10 @@ urlpatterns = [
     path('bookings/',views.bookings_view,name="bookings_view"),
     path('bill/details/', views.bill_view, name='bill_details'),
     path('guests_view/', views.guest_view, name='guest_view'),
+
+    path('payments/', views.payment_management, name='payment_management'),
+    path('payments/export/', views.export_payments_csv, name='export_payments_csv'),
+    path('revenue-reports/', views.revenue_reports, name='revenue_reports'),
+    path('record-payment/<str:booking_id>/', views.record_payment, name='record_payment'),
+
 ]
