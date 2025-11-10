@@ -684,10 +684,7 @@ def guest_view(request):
         Prefetch(
             'bookings',
             queryset=Booking.objects.prefetch_related(
-                Prefetch(
-                    
-                    queryset=CheckIn.objects.all().order_by('-actual_check_in')
-                )
+                Prefetch('checkins', queryset=CheckIn.objects.all().order_by('-actual_check_in'))
             ).order_by('-check_in_date')
         )
     ).order_by('last_name', 'first_name')
@@ -991,6 +988,7 @@ def process_checkin_from_booking(request, booking_id):
         'room': booking.room,
     }
     return render(request, 'checkin_from_booking.html', context)
+
 
 
 
