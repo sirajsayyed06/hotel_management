@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Motel Management System - Reports</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Pacifico&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-900 text-white min-h-screen font-['Poppins']">
+    <div class="max-w-7xl mx-auto p-4">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8 pb-6 border-b border-gray-600">
+            <h1 class="text-3xl font-bold text-white">Reports & Analytics</h1>
+            <a href="{% url 'dashboard' %}"
+                class="inline-flex items-center px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition-all">
+                <i class="fas fa-arrow-left mr-1"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Occupancy Rate Card -->
+            <div class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl p-6 border border-blue-500 shadow-lg">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-blue-200 text-sm font-semibold uppercase">Occupancy Rate (Current Month)</p>
+                        <p class="text-3xl font-bold text-white mt-2">{{ occupancy_rate_current_month }}%</p>
+                    </div>
+                    <div class="bg-blue-500 p-3 rounded-full">
+                        <i class="fas fa-bed text-white text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Month Revenue Card -->
+            <div class="bg-gradient-to-r from-green-600 to-green-800 rounded-xl p-6 border border-green-500 shadow-lg">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-green-200 text-sm font-semibold uppercase">Revenue (Current Month)</p>
+                        <p class="text-3xl font-bold text-white mt-2">${{ current_month_revenue }}</p>
+                    </div>
+                    <div class="bg-green-500 p-3 rounded-full">
+                        <i class="fas fa-rupee-sign text-white text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Last 3 Months Revenue Card -->
+            <div class="bg-gradient-to-r from-cyan-600 to-cyan-800 rounded-xl p-6 border border-cyan-500 shadow-lg">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-cyan-200 text-sm font-semibold uppercase">Revenue (Last 3 Months)</p>
+                        <p class="text-3xl font-bold text-white mt-2">${{ last_3_months_revenue }}</p>
+                    </div>
+                    <div class="bg-cyan-500 p-3 rounded-full">
+                        <i class="fas fa-chart-line text-white text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Rooms Card -->
+            <div class="bg-gradient-to-r from-amber-600 to-amber-800 rounded-xl p-6 border border-amber-500 shadow-lg">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-amber-200 text-sm font-semibold uppercase">Total Rooms</p>
+                        <p class="text-3xl font-bold text-white mt-2">{{ total_rooms }}</p>
+                    </div>
+                    <div class="bg-amber-500 p-3 rounded-full">
+                        <i class="fas fa-door-closed text-white text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Room Status Pie Chart -->
+            <div class="bg-gray-800 rounded-xl p-6 border border-gray-600 shadow-lg">
+                <div class="flex items-center mb-4">
+                    <i class="fas fa-pie-chart text-blue-400 mr-3 text-xl"></i>
+                    <h2 class="text-xl font-semibold text-gray-300">Room Status Distribution</h2>
+                </div>
+                <div class="chart-container" style="position: relative; height: 300px;">
+                    <canvas id="roomStatusChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Revenue by Payment Method -->
+            <div class="bg-gray-800 rounded-xl p-6 border border-gray-600 shadow-lg">
+                <div class="flex items-center mb-4">
+                    <i class="fas fa-chart-pie text-green-400 mr-3 text-xl"></i>
+                    <h2 class="text-xl font-semibold text-gray-300">Revenue by Payment Method</h2>
+                </div>
+                <div class="chart-container" style="position: relative; height: 300px;">
+                    <canvas id="paymentMethodChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Statistics -->
+        <div class="bg-gray-800 rounded-xl p-6 border border-gray-600 shadow-lg mb-8">
+            <div class="flex items-center mb-6">
+                <i class="fas fa-chart-bar text-purple-400 mr-3 text-xl"></i>
+                <h2 class="text-xl font-semibold text-gray-300">Detailed Statistics</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Current Month Stats -->
+                <div class="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                    <h3 class="text-lg font-semibold text-blue-300 mb-3 flex items-center">
+                        <i class="fas fa-calendar-alt mr-2"></i> Current Month
+                    </h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center py-2 border-b border-gray-600">
+                            <span class="text-gray-300">Occupied Room Days:</span>
+                            <span class="font-semibold text-white">{{ occupied_days_current_month }}</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-gray-600">
+                            <span class="text-gray-300">Available Room Days:</span>
+                            <span class="font-semibold text-white">{{ available_days_current_month }}</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2">
+                            <span class="text-gray-300">Occupancy Rate:</span>
+                            <span class="font-semibold text-green-400">{{ occupancy_rate_current_month }}%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Revenue Summary -->
+                <div class="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                    <h3 class="text-lg font-semibold text-green-300 mb-3 flex items-center">
+                        <i class="fas fa-money-bill-wave mr-2"></i> Revenue Summary
+                    </h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center py-2 border-b border-gray-600">
+                            <span class="text-gray-300">Current Month Revenue:</span>
+                            <span class="font-semibold text-white">${{ current_month_revenue }}</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2">
+                            <span class="text-gray-300">Last 3 Months Revenue:</span>
+                            <span class="font-semibold text-white">${{ last_3_months_revenue }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-gradient-to-r from-purple-600 to-purple-800 rounded-xl p-4 text-center border border-purple-500">
+                <i class="fas fa-users text-purple-200 text-2xl mb-2"></i>
+                <p class="text-purple-200 text-sm">Active Guests</p>
+                <p class="text-2xl font-bold text-white">{{ current_guests|default:"0" }}</p>
+            </div>
+            <div class="bg-gradient-to-r from-red-600 to-red-800 rounded-xl p-4 text-center border border-red-500">
+                <i class="fas fa-calendar-check text-red-200 text-2xl mb-2"></i>
+                <p class="text-red-200 text-sm">Today's Check-ins</p>
+                <p class="text-2xl font-bold text-white">{{ today_checkins|default:"0" }}</p>
+            </div>
+            <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 rounded-xl p-4 text-center border border-indigo-500">
+                <i class="fas fa-bookmark text-indigo-200 text-2xl mb-2"></i>
+                <p class="text-indigo-200 text-sm">Total Bookings</p>
+                <p class="text-2xl font-bold text-white">{{ total_bookings|default:"0" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Room Status Pie Chart
+        var roomStatusCtx = document.getElementById('roomStatusChart').getContext('2d');
+        var roomStatusChart = new Chart(roomStatusCtx, {
+            type: 'pie',
+            data: {
+                labels: {{ room_status_labels|safe }},
+                datasets: [{
+                    data: {{ room_status_values|safe }},
+                    backgroundColor: [
+                        '#4e73df', // Blue - Available
+                        '#1cc88a', // Green - Occupied
+                        '#36b9cc', // Cyan - Maintenance
+                        '#f6c23e'  // Yellow - Out of Service
+                    ],
+                    hoverBackgroundColor: [
+                        '#2e59d9',
+                        '#17a673', 
+                        '#2c9faf',
+                        '#dda20a'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#1f2937'
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#d1d5db',
+                            padding: 20,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#374151',
+                        titleColor: '#f9fafb',
+                        bodyColor: '#f9fafb',
+                        borderColor: '#4b5563',
+                        borderWidth: 1
+                    }
+                }
+            },
+        });
+
+        // Payment Method Pie Chart
+        var paymentMethodCtx = document.getElementById('paymentMethodChart').getContext('2d');
+        var paymentMethodChart = new Chart(paymentMethodCtx, {
+            type: 'pie',
+            data: {
+                labels: {{ payment_method_labels|safe }},
+                datasets: [{
+                    data: {{ payment_method_values|safe }},
+                    backgroundColor: [
+                        '#4e73df', // Blue - Cash
+                        '#1cc88a', // Green - Card
+                        '#36b9cc', // Cyan - UPI
+                        '#f6c23e', // Yellow - Bank Transfer
+                        '#e74a3b'  // Red - Others
+                    ],
+                    hoverBackgroundColor: [
+                        '#2e59d9',
+                        '#17a673',
+                        '#2c9faf',
+                        '#dda20a',
+                        '#be2617'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#1f2937'
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#d1d5db',
+                            padding: 20,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#374151',
+                        titleColor: '#f9fafb',
+                        bodyColor: '#f9fafb',
+                        borderColor: '#4b5563',
+                        borderWidth: 1
+                    }
+                }
+            },
+        });
+    </script>
+</body>
+</html>
