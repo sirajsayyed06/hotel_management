@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check-in from Booking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-900 text-white min-h-screen font-sans">
+    <div class="max-w-2xl mx-auto p-4 mt-8">
+        <div class="bg-gray-800 rounded-lg p-6">
+            <h2 class="text-2xl font-bold mb-4">Check-in Guest</h2>
+            
+            <!-- Booking Information -->
+            <div class="mb-6 p-4 bg-gray-700 rounded-lg">
+                <h3 class="text-lg font-semibold mb-3">Booking Information</h3>
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span class="text-gray-400">Booking ID:</span>
+                        <p class="font-mono text-blue-400">{{ booking.booking_id }}</p>
+                    </div>
+                    <div>
+                        <span class="text-gray-400">Room:</span>
+                        <p class="font-semibold">Room {{ room.room_number }} ({{ room.get_room_type_display }})</p>
+                    </div>
+                    <div>
+                        <span class="text-gray-400">Guest:</span>
+                        <p class="font-semibold">{{ guest.first_name }} {{ guest.last_name }}</p>
+                    </div>
+                    <div>
+                        <span class="text-gray-400">Email:</span>
+                        <p>{{ guest.email }}</p>
+                    </div>
+                    <div>
+                        <span class="text-gray-400">Check-in Date:</span>
+                        <p>{{ booking.check_in_date }}</p>
+                    </div>
+                    <div>
+                        <span class="text-gray-400">Check-out Date:</span>
+                        <p>{{ booking.check_out_date }}</p>
+                    </div>
+                    <div>
+                        <span class="text-gray-400">Nights:</span>
+                        <p>{{ booking.number_of_nights }}</p>
+                    </div>
+                    <div>
+                        <span class="text-gray-400">Total Amount:</span>
+                        <p class="font-semibold">${{ booking.total_amount|floatformat:2 }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Check-in Form -->
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold mb-3">Check-in Details</h3>
+                    
+                    <!-- Additional check-in information can be added here -->
+                    <div class="bg-yellow-600 bg-opacity-20 border border-yellow-600 rounded-lg p-4 mb-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-info-circle mr-2 text-yellow-400"></i>
+                            <p class="text-sm">Room status will be updated to 'Occupied' after check-in.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex gap-4">
+                    <button type="submit" 
+                            class="flex-1 bg-green-600 hover:bg-green-700 py-3 rounded-lg transition-colors font-semibold flex items-center justify-center">
+                        <i class="fas fa-check mr-2"></i> Complete Check-in
+                    </button>
+                    <a href="{% url 'bookings_management' %}"
+                       class="flex-1 bg-gray-600 hover:bg-gray-700 py-3 rounded-lg transition-colors font-semibold text-center flex items-center justify-center">
+                        <i class="fas fa-times mr-2"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

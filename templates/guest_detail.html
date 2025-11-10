@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guest Details - {{ guest.full_name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-900 text-white min-h-screen font-sans">
+    <div class="max-w-6xl mx-auto p-4">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-3xl font-bold">Guest Details</h1>
+                <p class="text-gray-400">Complete information and booking history</p>
+            </div>
+            <a href="{% url 'guest_view' %}" 
+               class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Guests
+            </a>
+        </div>
+
+        <!-- Guest Information -->
+        <div class="bg-gray-800 rounded-lg p-6 mb-6">
+            <div class="flex justify-between items-start mb-4">
+                <h2 class="text-2xl font-semibold">Personal Information</h2>
+                <form method="POST" action="{% url 'toggle_guest_status' guest.guest_id %}" class="inline">
+                    {% csrf_token %}
+                    {% if guest.is_active %}
+                    <button type="submit" 
+                            class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors"
+                            onclick="return confirm('Deactivate this guest?')">
+                        <i class="fas fa-user-slash mr-2"></i>Deactivate Guest
+                    </button>
+                    {% else %}
+                    <button type="submit" 
+                            class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors"
+                            onclick="return confirm('Activate this guest?')">
+                        <i class="fas fa-user-check mr-2"></i>Activate Guest
+                    </button>
+                    {% endif %}
+                </form>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div>
+                    <label class="text-gray-400 text-sm">Guest ID</label>
+                    <p class="font-mono text-blue-400">{{ guest.guest_id }}</p>
+                </div>
+                <div>
+                    <label class="text-gray-400 text-sm">Full Name</label>
+                    <p class="font-semibold">{{ guest.full_name }}</p>
+                </div>
+                <div>
+                    <label class="text-gray-400 text-sm">Status</label>
+                    <span class="px-3 py-1 rounded-full text-sm font-semibold {% if guest.is_active %}bg-green-600{% else %}bg-gray-600{% endif %}">
+                        {% if guest.is_active %}Active{% else %}Inactive{% endif %}
+                    </span>
+                </div>
+
+                <!-- Add this in the Guest Information section after the Status div -->
+
+<div>
+    <label class="text-gray-400 text-sm">VIP Status</label>
+    <div class="flex items-center space-x-2">
+        <span class="px-3 py-1 rounded-full text-sm font-semibold {% if guest.is_vip %}bg-purple-600{% else %}bg-gray-600{% endif %}">
+            {% if guest.is_vip %}VIP Guest{% else %}Standard Guest{% endif %}
+        </span>
+        <form method="POST" action="{% url 'toggle_guest_vip' guest.guest_id %}" class="inline">
+            {% csrf_token %}
+            {% if guest.is_vip %}
+            <button type="submit" 
+                    class="bg-gray-600 hover:bg-gray-700 px-3 py-1 rounded text-sm transition-colors"
+                    onclick="return confirm('Remove VIP status from this guest?')">
+                Remove VIP
+            </button>
+            {% else %}
+            <button type="submit" 
+                    class="bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded text-sm transition-colors"
+                    onclick="return confirm('Mark this guest as VIP?')">
+                Make VIP
+            </button>
+            {% endif %}
+        </form>
+    </div>
+</div>
+                <div>
+                    <label class="text-gray-400 text-sm">Email</label>
+                    <p class="flex items-center">
+                        <i class="fas fa-envelope text-gray-400 mr-2 text-sm"></i>
+                        {{ guest.email }}
+                    </p>
+                </div>
+                <div>
+                    <label class="text-gray-400 text-sm">Phone</label>
+                    <p class="flex items-center">
+                        <i class="fas fa-phone text-gray-400 mr-2 text-sm"></i>
+                        {{ guest.phone|default:"N/A" }}
+                    </p>
+                </div>
+                <div>
+                    <label class="text-gray-400 text-sm">Loyalty ID</label>
+                    <p>{{ guest.loyalty_id|default:"N/A" }}</p>
+                </div>
+                <div>
+                    <label class="text-gray-400 text-sm">ID Proof Type</label>
+                    <p>{{ guest.get_id_proof_type_display }}</p>
+                </div>
+                <div>
+                    <label class="text-gray-400 text-sm">ID Proof Number</label>
+                    <p class="font-mono">{{ guest.id_proof_number|default:"N/A" }}</p>
+                </div>
+                <div>
+                    <label class="text-gray-400 text-sm">Member Since</label>
+                    <p>{{ guest.created_at|date:"M d, Y" }}</p>
+                </div>
+            </div>
+            
+            {% if guest.address %}
+            <div class="mt-4">
+                <label class="text-gray-400 text-sm">Address</label>
+                <p class="mt-1">{{ guest.address }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Statistics -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-gray-800 rounded-lg p-4 text-center">
+                <div class="text-2xl font-bold text-blue-400">{{ total_bookings }}</div>
+                <div class="text-gray-400 text-sm">Total Bookings</div>
+            </div>
+            <div class="bg-gray-800 rounded-lg p-4 text-center">
+                <div class="text-2xl font-bold text-green-400">{{ total_nights }}</div>
+                <div class="text-gray-400 text-sm">Total Nights</div>
+            </div>
+            <div class="bg-gray-800 rounded-lg p-4 text-center">
+                <div class="text-2xl font-bold text-yellow-400">{{ active_bookings }}</div>
+                <div class="text-gray-400 text-sm">Active Bookings</div>
+            </div>
+        </div>
+
+        <!-- Booking History -->
+        <div class="bg-gray-800 rounded-lg p-6">
+            <h2 class="text-2xl font-semibold mb-4">Booking History</h2>
+            
+            {% if bookings %}
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-700">
+                        <tr>
+                            <th class="p-3 text-left">Booking ID</th>
+                            <th class="p-3 text-left">Room</th>
+                            <th class="p-3 text-left">Check-in</th>
+                            <th class="p-3 text-left">Check-out</th>
+                            <th class="p-3 text-left">Nights</th>
+                            <th class="p-3 text-left">Amount</th>
+                            <th class="p-3 text-left">Status</th>
+                            <th class="p-3 text-left">Check-in Time</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-600">
+                        {% for booking in bookings %}
+                        <tr class="hover:bg-gray-700 transition-colors">
+                            <td class="p-3 font-mono text-blue-400">{{ booking.booking_id }}</td>
+                            <td class="p-3">
+                                <div class="font-semibold">Room {{ booking.room.room_number }}</div>
+                                <div class="text-xs text-gray-400">{{ booking.get_room_type_display }}</div>
+                            </td>
+                            <td class="p-3">{{ booking.check_in_date|date:"M d, Y" }}</td>
+                            <td class="p-3">{{ booking.check_out_date|date:"M d, Y" }}</td>
+                            <td class="p-3 text-center">{{ booking.number_of_nights }}</td>
+                            <td class="p-3">${{ booking.total_amount }}</td>
+                            <td class="p-3">
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold 
+                                    {% if booking.status == 'checked_in' %}bg-green-600
+                                    {% elif booking.status == 'confirmed' %}bg-blue-600
+                                    {% elif booking.status == 'checked_out' %}bg-gray-600
+                                    {% else %}bg-red-600{% endif %}">
+                                    {{ booking.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="p-3">
+                                {% with booking.checkins.first as checkin %}
+                                    {% if checkin %}
+                                        {{ checkin.actual_check_in|date:"M d, Y H:i" }}
+                                    {% else %}
+                                        <span class="text-gray-400">-</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-8 text-gray-400">
+                <i class="fas fa-calendar-times text-4xl mb-2 block"></i>
+                No booking history found
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

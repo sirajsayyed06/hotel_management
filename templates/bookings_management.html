@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hotel Management System - Bookings Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Pacifico&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'hotel-green': '#10b981',
+                        'hotel-red': '#ef4444',
+                        'hotel-yellow': '#f59e0b',
+                        'hotel-blue': '#3b82f6',
+                        'hotel-purple': '#8b5cf6',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .font-poppins {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .font-pacifico {
+            font-family: 'Pacifico', cursive;
+        }
+
+        .status-confirmed {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+        .status-checked_in {
+            background-color: #10b981;
+            color: white;
+        }
+
+        .status-checked_out {
+            background-color: #6b7280;
+            color: white;
+        }
+
+        .status-cancelled {
+            background-color: #ef4444;
+            color: white;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-white min-h-screen font-poppins">
+    <div class="max-w-7xl mx-auto p-4">
+        <div class="flex justify-between items-center mb-8 pb-6 border-b border-gray-600">
+            <h1 class="text-3xl font-bold">Bookings Management</h1>
+            <div class="flex gap-4">
+                <a href="{% url 'add_booking' %}"
+                    class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+                    <i class="fas fa-plus mr-2"></i> New Booking
+                </a>
+                <a href="{% url 'dashboard' %}"
+                    class="inline-flex items-center px-4 py-2 border border-gray-600 text-gray-300 rounded hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-arrow-left mr-1"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats and Filters -->
+        <div class="bg-gray-800 rounded-xl p-6 mb-6 border border-gray-600">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6">
+                <div>
+                    <h3 class="text-xl font-semibold mb-2">All Bookings</h3>
+                    <p class="text-gray-400">Total: {{ total_bookings }} bookings</p>
+                </div>
+
+                <!-- Filter Buttons -->
+                <div class="flex flex-wrap gap-2 mt-4 lg:mt-0">
+                    <a href="?status=all"
+                        class="px-4 py-2 rounded-lg border {% if status_filter == 'all' %}bg-blue-600 border-blue-600{% else %}border-gray-600 hover:bg-gray-700{% endif %} transition-colors">
+                        All
+                    </a>
+                    <a href="?status=confirmed"
+                        class="px-4 py-2 rounded-lg border {% if status_filter == 'confirmed' %}bg-blue-600 border-blue-600{% else %}border-gray-600 hover:bg-gray-700{% endif %} transition-colors">
+                        Confirmed ({{ confirmed_bookings }})
+                    </a>
+                    <a href="?status=checked_in"
+                        class="px-4 py-2 rounded-lg border {% if status_filter == 'checked_in' %}bg-blue-600 border-blue-600{% else %}border-gray-600 hover:bg-gray-700{% endif %} transition-colors">
+                        Checked In ({{ checked_in_bookings }})
+                    </a>
+                </div>
+            </div>
+
+            <!-- Status Legend -->
+            <div class="flex flex-wrap gap-4">
+                <div class="flex items-center">
+                    <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                    <span class="text-sm">Confirmed</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                    <span class="text-sm">Checked In</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-3 h-3 bg-gray-500 rounded-full mr-2"></div>
+                    <span class="text-sm">Checked Out</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                    <span class="text-sm">Cancelled</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Display Messages -->
+        {% if messages %}
+        <div class="mb-6">
+            {% for message in messages %}
+            <div
+                class="p-3 rounded-lg {% if message.tags == 'error' %}bg-red-600{% else %}bg-green-600{% endif %} text-white">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Bookings Table -->
+        <div class="bg-gray-800 rounded-lg border border-gray-600 shadow-md overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-700">
+                        <tr>
+                            <th class="p-3 text-left text-sm font-semibold text-gray-300">#</th>
+                            <th class="p-3 text-left text-sm font-semibold text-gray-300">Booking ID</th>
+                            <th class="p-3 text-left text-sm font-semibold text-gray-300">Room</th>
+                            <th class="p-3 text-left text-sm font-semibold text-gray-300">Guest Name</th>
+                            <th class="p-3 text-left text-sm font-semibold text-gray-300">Expected Check-in</th>
+                            <th class="p-3 text-left text-sm font-semibold text-gray-300">Expected Check-out</th>
+                            <th class="p-3 text-left text-sm font-semibold text-gray-300">Nights</th>
+                            <th class="p-3 text-left text-sm font-semibold text-gray-300">Total Amount</th>
+                            <th class="p-3 text-left text-sm font-semibold text-gray-300">Status</th>
+                            <th class="p-3 text-left text-sm font-semibold text-gray-300">Booking Date</th>
+                            <th class="p-3 text-left text-sm font-semibold text-gray-300">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-600">
+                        {% for booking in bookings %}
+                        <tr class="hover:bg-gray-700 transition-colors">
+                            <td class="p-3 text-sm font-medium">{{ forloop.counter }}</td>
+                            <td class="p-3 text-sm font-mono text-blue-400">{{ booking.booking_id }}</td>
+                            <td class="p-3 text-sm">
+                                <div class="font-semibold">Room {{ booking.room.room_number }}</div>
+                                <div class="text-xs text-gray-400">{{ booking.get_room_type_display }}</div>
+                            </td>
+                            <td class="p-3 text-sm">
+                                <div class="font-semibold">{{ booking.guest.first_name }} {{ booking.guest.last_name }}</div>
+                                <div class="text-xs text-gray-400">{{ booking.guest.email }}</div>
+                                <div class="text-xs text-gray-400">{{ booking.guest.phone }}</div>
+                            </td>
+                            <td class="p-3 text-sm">{{ booking.check_in_date }}</td>
+                            <td class="p-3 text-sm">{{ booking.check_out_date }}</td>
+                            <td class="p-3 text-sm text-center">{{ booking.number_of_nights }}</td>
+                            <td class="p-3 text-sm font-semibold">${{ booking.total_amount|floatformat:2 }}</td>
+                            <td class="p-3 text-sm">
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold 
+                                    {% if booking.status == 'confirmed' %}status-confirmed
+                                    {% elif booking.status == 'checked_in' %}status-checked_in
+                                    {% elif booking.status == 'checked_out' %}status-checked_out
+                                    {% else %}status-cancelled{% endif %}">
+                                    {{ booking.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="p-3 text-sm">{{ booking.created_at|date:"M d, Y" }}</td>
+                            <td class="p-3 text-sm">
+                                <div class="flex flex-col space-y-2">
+                                    {% if booking.status == 'confirmed' %}
+                                    <!-- Check-in Button -->
+                                    <a href="{% url 'process_checkin_from_booking' booking.booking_id %}" 
+                                       class="w-full px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded transition-colors flex items-center justify-center"
+                                       title="Process Check-in">
+                                        <i class="fas fa-sign-in-alt mr-1"></i> Check-in
+                                    </a>
+                                    
+                                    <!-- Cancel Booking Button -->
+                                    <form method="POST" action="{% url 'cancel_booking' booking.booking_id %}" class="w-full">
+                                        {% csrf_token %}
+                                        <button type="submit" 
+                                                class="w-full px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors flex items-center justify-center"
+                                                onclick="return confirm('Cancel booking {{ booking.booking_id }}?')">
+                                            <i class="fas fa-times mr-1"></i> Cancel
+                                        </button>
+                                    </form>
+                                    {% elif booking.status == 'checked_in' %}
+                                    <span class="px-2 py-1 text-xs text-green-400 text-center">Checked In</span>
+                                    {% elif booking.status == 'cancelled' %}
+                                    <span class="px-2 py-1 text-xs text-red-400 text-center">Cancelled</span>
+                                    {% endif %}
+                                    
+                                    <!-- View Guest Details -->
+                                    <a href="{% url 'guest_detail' booking.guest.guest_id %}" 
+                                       class="w-full px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white text-xs rounded transition-colors flex items-center justify-center">
+                                        <i class="fas fa-eye mr-1"></i> View Guest
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="11" class="p-6 text-center text-gray-400">
+                                <i class="fas fa-calendar-times text-4xl mb-2 block"></i>
+                                No bookings found
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Add any JavaScript functionality here if needed
+        });
+    </script>
+</body>
+</html>
