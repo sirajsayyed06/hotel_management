@@ -482,17 +482,17 @@ def bill_view(request):
     return render(request, 'bill.html')
 
 @login_required
-def guest_view(request):
-    guests = Guest.objects.annotate(
-        last_checkin_date=Max('bookings__checkin__actual_check_in'),
-        total_bookings=Count('bookings')
-    ).order_by('-created_at')
+# def guest_view(request):
+#     guests = Guest.objects.annotate(
+#         last_checkin_date=Max('bookings__checkin__actual_check_in'),
+#         total_bookings=Count('bookings')
+#     ).order_by('-created_at')
     
-    context = {
-        'guests': guests,
-    }
+#     context = {
+#         'guests': guests,
+#     }
 
-    return render(request, 'guest.html', context)
+#     return render(request, 'guest.html', context)
 
 @login_required
 def payment_management(request):
@@ -731,7 +731,7 @@ def guest_view(request):
         'search_query': search_query,
         'status_filter': status_filter,
         'active_guests_count': active_guests_count,
-        'vip_guests_count': vip_guests_count,
+        # 'vip_guests_count': vip_guests_count,
         'new_this_month_count': new_this_month_count,
         'total_bookings_count': total_bookings_count,
         'current_month': current_month,
@@ -806,6 +806,7 @@ def guest_search_api(request):
         return JsonResponse({'results': results})
     
     return JsonResponse({'results': []})
+
 
 
 
