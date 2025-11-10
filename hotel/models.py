@@ -102,4 +102,86 @@ class CheckIn(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
+
         return f"CheckIn {self.checkin_id}"
+
+PAYMENT_STATUSES = [
+    ('pending', 'Pending'),
+    ('completed', 'Completed'),
+    ('failed', 'Failed'),
+    ('refunded', 'Refunded'),
+    ('partially_refunded', 'Partially Refunded'),
+]
+
+PAYMENT_METHODS = [
+    ('cash', 'Cash'),
+    ('card', 'Credit/Debit Card'),
+    ('upi', 'UPI'),
+    ('net_banking', 'Net Banking'),
+    ('wallet', 'Digital Wallet'),
+]
+
+class Payment(models.Model):
+    payment_id = models.CharField(max_length=20, primary_key=True, editable=False)
+    booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name='payments')
+    guest = models.ForeignKey(Guest, on_delete=models.CASCADE, related_name='payments')
+    
+    # Payment details
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS, default='cash')
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUSES, default='pending')
+    transaction_id = models.CharField(max_length=100, blank=True, null=True)
+    
+    # Payment timing
+    payment_date = models.DateTimeField(default=timezone.now)
+    due_date = models.DateField(blank=True, null=True)
+    
+    # Additional fields for better tracking
+    payment_type = models.CharField(max_length=20, choices=[
+        ('advance', 'Advance Payment'),
+        ('final', 'Final Payment'),
+        ('refund', 'Refund'),
+        ('additional', 'Additional Charges'),
+    ], default='advance')
+    
+    description = models.TextField(blank=True)
+    created_by = models.CharField(max_length=100, blank=True)  # Store staff username
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.payment_id:
+            self.payment_id = "PMT" + uuid.uuid4().hex[:12].upper()
+        
+        # Auto-update booking amount_paid when payment is completed
+        if self.payment_status == 'completed' and self.booking:
+            self.booking.amount_paid = self.booking.amount_paid + self.amount
+            self.booking.save()
+        
+        # Auto-update booking amount_paid when payment is refunded
+        elif self.payment_status in ['refunded', 'partially_refunded'] and self.booking:
+            self.booking.amount_paid = self.booking.amount_paid - self.amount
+            self.booking.save()
+            
+        super().save(*args, **kwargs)
+
+    @property
+    def balance_after_payment(self):
+        """Calculate balance after this payment"""
+        previous_payments = Payment.objects.filter(
+            booking=self.booking, 
+            payment_status='completed',
+            payment_date__lt=self.payment_date
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        return self.booking.total_amount - (previous_payments + self.amount)
+
+    class Meta:
+        ordering = ['-payment_date']
+        indexes = [
+            models.Index(fields=['payment_status', 'payment_date']),
+            models.Index(fields=['guest', 'payment_date']),
+            models.Index(fields=['booking', 'payment_status']),
+        ]
+
+    def __str__(self):
+        return f"Payment {self.payment_id} - {self.amount} ({self.get_payment_status_display()})"
