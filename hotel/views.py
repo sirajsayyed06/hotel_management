@@ -715,7 +715,7 @@ def guest_view(request):
     
     # Calculate statistics for the template
     active_guests_count = guests.filter(is_active=True).count()
-    # vip_guests_count = guests.filter(is_vip=True).count() 
+    vip_guests_count = guests.filter(is_vip=True).count() 
     
     # Calculate new guests this month
     current_month = timezone.now().month
@@ -731,7 +731,7 @@ def guest_view(request):
         'search_query': search_query,
         'status_filter': status_filter,
         'active_guests_count': active_guests_count,
-        # 'vip_guests_count': vip_guests_count,
+        'vip_guests_count': vip_guests_count,
         'new_this_month_count': new_this_month_count,
         'total_bookings_count': total_bookings_count,
         'current_month': current_month,
@@ -806,6 +806,7 @@ def guest_search_api(request):
         return JsonResponse({'results': results})
     
     return JsonResponse({'results': []})
+
 
 
 
