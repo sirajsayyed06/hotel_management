@@ -808,6 +808,191 @@ def guest_search_api(request):
     return JsonResponse({'results': []})
 
 
+@login_required
+def toggle_guest_vip(request, guest_id):
+    """Toggle guest VIP status"""
+    if request.method == 'POST':
+        guest = get_object_or_404(Guest, guest_id=guest_id)
+        guest.is_vip = not guest.is_vip
+        guest.save()
+        
+        messages.success(request, f"Guest {guest.first_name} {guest.last_name} has been {'marked as VIP' if guest.is_vip else 'removed from VIP'}.")
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'is_vip': guest.is_vip,
+                'message': f"Guest {guest.first_name} {guest.last_name} has been {'marked as VIP' if guest.is_vip else 'removed from VIP'}."
+            })
+    
+    return redirect('guest_detail', guest_id=guest_id)
+
+@login_required
+def add_booking(request):
+    """Display booking form and handle bookings"""
+    rooms = Room.objects.filter(status='available').order_by('room_number')
+    
+    if request.method == 'POST':
+        try:
+            print("Booking process started...")
+            
+            # Get form data
+            first_name = request.POST.get('firstName')
+            last_name = request.POST.get('lastName')
+            email = request.POST.get('email')
+            phone = request.POST.get('phone')
+            room_number = request.POST.get('roomNumber')
+            checkin_date = request.POST.get('checkinDate')
+            checkout_date = request.POST.get('checkoutDate')
+            id_proof_type = request.POST.get('id_proof_type', 'aadhaar')
+            id_proof_number = request.POST.get('id_proof_number', '')
+            
+            print(f"Processing booking for Room {room_number}")
+            
+            # Create or get guest
+            guest, created = Guest.objects.get_or_create(
+                email=email,
+                defaults={
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'phone': phone,
+                    'id_proof_type': id_proof_type,
+                    'id_proof_number': id_proof_number
+                }
+            )
+
+            if not created:
+                # Update existing guest with new information
+                guest.first_name = first_name
+                guest.last_name = last_name
+                guest.phone = phone
+                guest.id_proof_type = id_proof_type
+                guest.id_proof_number = id_proof_number
+                guest.save()
+            
+            # Get room and verify it's available
+            room = Room.objects.get(room_number=room_number)
+            
+            if room.status.lower() != 'available':
+                messages.error(request, f'Room {room_number} is not available! Current status: {room.status}')
+                return redirect('add_booking')
+            
+            # Calculate number of nights and total amount
+            checkin_obj = datetime.strptime(checkin_date, '%Y-%m-%d').date()
+            checkout_obj = datetime.strptime(checkout_date, '%Y-%m-%d').date()
+            nights = (checkout_obj - checkin_obj).days
+            
+            # Create booking
+            booking = Booking.objects.create(
+                guest=guest,
+                room=room,
+                room_type=room.room_type,
+                check_in_date=checkin_date,
+                check_out_date=checkout_date,
+                number_of_guests=1,
+                number_of_nights=nights,
+                status='confirmed',
+                total_amount=room.price_per_night * nights
+            )
+            
+            # Update room status to 'booked'
+            room.status = 'booked'
+            room.save()
+            
+            messages.success(request, f'Booking created successfully for Room {room_number}!')
+            return redirect('bookings_management')
+            
+        except Exception as e:
+            messages.error(request, f'Error creating booking: {str(e)}')
+            return redirect('add_booking')
+    
+    context = {
+        'rooms': rooms,
+        'available_rooms': rooms.filter(status='available'),
+    }
+    return render(request, 'add_booking.html', context)
+
+@login_required
+def bookings_management(request):
+    """Display all bookings with actions"""
+    bookings = Booking.objects.select_related('guest', 'room').all().order_by('-created_at')
+    
+    # Get filter parameter
+    status_filter = request.GET.get('status', 'all')
+    
+    if status_filter != 'all':
+        bookings = bookings.filter(status=status_filter)
+    
+    context = {
+        'bookings': bookings,
+        'status_filter': status_filter,
+        'total_bookings': bookings.count(),
+        'confirmed_bookings': bookings.filter(status='confirmed').count(),
+        'checked_in_bookings': bookings.filter(status='checked_in').count(),
+    }
+    return render(request, 'bookings_management.html', context)
+
+@login_required
+def cancel_booking(request, booking_id):
+    """Cancel a booking and free up the room"""
+    booking = get_object_or_404(Booking, booking_id=booking_id)
+    
+    if request.method == 'POST':
+        try:
+            # Update booking status
+            booking.status = 'cancelled'
+            booking.save()
+            
+            # Update room status back to available
+            room = booking.room
+            room.status = 'available'
+            room.save()
+            
+            messages.success(request, f'Booking {booking_id} has been cancelled successfully.')
+        except Exception as e:
+            messages.error(request, f'Error cancelling booking: {str(e)}')
+    
+    return redirect('bookings_management')
+
+@login_required
+def process_checkin_from_booking(request, booking_id):
+    """Process check-in from an existing booking"""
+    booking = get_object_or_404(Booking, booking_id=booking_id)
+    
+    if request.method == 'POST':
+        try:
+            # Create check-in record
+            checkin = CheckIn.objects.create(
+                booking=booking,
+                number_of_guests=booking.number_of_guests,
+                actual_check_in=timezone.now(),
+                expected_check_out=timezone.now() + timedelta(days=booking.number_of_nights)
+            )
+            
+            # Update booking status
+            booking.status = 'checked_in'
+            booking.save()
+            
+            # Update room status to occupied
+            room = booking.room
+            room.status = 'occupied'
+            room.save()
+            
+            messages.success(request, f'Check-in successful for Room {room.room_number}!')
+            return redirect('checkin_view')
+            
+        except Exception as e:
+            messages.error(request, f'Error during check-in: {str(e)}')
+    
+    # If GET request, show check-in form with pre-filled data
+    context = {
+        'booking': booking,
+        'guest': booking.guest,
+        'room': booking.room,
+    }
+    return render(request, 'checkin_from_booking.html', context)
+
+
 
 
 
