@@ -25,4 +25,10 @@ urlpatterns = [
     path('revenue-reports/', views.revenue_reports, name='revenue_reports'),
     path('record-payment/<str:booking_id>/', views.record_payment, name='record_payment'),
 
+    path('guests_view/', views.guest_view, name='guest_view'), 
+    path('guest/<str:guest_id>/', views.guest_detail_view, name='guest_detail'),
+    path('guest/<str:guest_id>/toggle-status/', views.toggle_guest_status, name='toggle_guest_status'),
+    path('api/guest-search/', views.guest_search_api, name='guest_search_api'),
+
 ]
+
