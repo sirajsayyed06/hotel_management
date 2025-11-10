@@ -30,11 +30,21 @@ class Guest(models.Model):
     loyalty_id = models.CharField(max_length=20, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
+    is_vip = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         if not self.guest_id:
             self.guest_id = "CLT" + uuid.uuid4().hex[:12].upper()
         super().save(*args, **kwargs)
+
+    @property
+    def last_checkin(self):
+        """Get the most recent check-in for this guest"""
+        latest_booking = self.bookings.order_by('-check_in_date').first()
+        if latest_booking and hasattr(latest_booking, 'checkins'):
+            latest_checkin = latest_booking.checkins.order_by('-actual_check_in').first()
+            return latest_checkin
+        return None
 
     class Meta:
         ordering = ['last_name', 'first_name']
@@ -185,3 +195,4 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"Payment {self.payment_id} - {self.amount} ({self.get_payment_status_display()})"
+
