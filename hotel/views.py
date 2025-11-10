@@ -655,9 +655,6 @@ def revenue_reports(request):
     }
     return render(request, 'revenue_reports.html', context)
 
-
-
-
 @login_required
 def record_payment(request, booking_id):
     """Simple view to record payments"""
@@ -680,6 +677,135 @@ def record_payment(request, booking_id):
     # If not POST, redirect to payment management
     return redirect('payment_management')
 
+@login_required
+def guest_view(request):
+    """Main guest list view with search and filter"""
+    guests = Guest.objects.all().prefetch_related(
+        Prefetch(
+            'bookings',
+            queryset=Booking.objects.prefetch_related(
+                Prefetch(
+                    'checkins',
+                    queryset=CheckIn.objects.all().order_by('-actual_check_in')
+                )
+            ).order_by('-check_in_date')
+        )
+    ).order_by('last_name', 'first_name')
+    
+    # Search functionality
+    search_query = request.GET.get('search', '')
+    status_filter = request.GET.get('status', 'all')
+    
+    if search_query:
+        guests = guests.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(phone__icontains=search_query) |
+            Q(guest_id__icontains=search_query)
+        )
+    
+    if status_filter != 'all':
+        if status_filter == 'active':
+            guests = guests.filter(is_active=True)
+        elif status_filter == 'inactive':
+            guests = guests.filter(is_active=False)
+        elif status_filter == 'vip':
+           guests = guests.filter(is_vip=True) 
+    
+    # Calculate statistics for the template
+    active_guests_count = guests.filter(is_active=True).count()
+    vip_guests_count = guests.filter(is_vip=True).count() 
+    
+    # Calculate new guests this month
+    current_month = timezone.now().month
+    new_this_month_count = guests.filter(created_at__month=current_month).count()
+    
+    # Calculate total bookings across all filtered guests
+    total_bookings_count = 0
+    for guest in guests:
+        total_bookings_count += guest.bookings.count()
+    
+    context = {
+        'guests': guests,
+        'search_query': search_query,
+        'status_filter': status_filter,
+        'active_guests_count': active_guests_count,
+        'vip_guests_count': vip_guests_count,
+        'new_this_month_count': new_this_month_count,
+        'total_bookings_count': total_bookings_count,
+        'current_month': current_month,
+    }
+    return render(request, 'guest.html', context)
+
+@login_required
+def guest_detail_view(request, guest_id):
+    """Detailed guest view with all information and history"""
+    guest = get_object_or_404(Guest, guest_id=guest_id)
+    
+    # Get all bookings with checkins for this guest
+    bookings = guest.bookings.all().prefetch_related(
+        'checkins',
+        'room'
+    ).order_by('-check_in_date')
+    
+    # Statistics
+    total_bookings = bookings.count()
+    total_nights = sum(booking.number_of_nights for booking in bookings if booking.number_of_nights)
+    active_bookings = bookings.filter(status='checked_in').count()
+    
+    context = {
+        'guest': guest,
+        'bookings': bookings,
+        'total_bookings': total_bookings,
+        'total_nights': total_nights,
+        'active_bookings': active_bookings,
+    }
+    return render(request, 'guest_detail.html', context)
+
+@login_required
+def toggle_guest_status(request, guest_id):
+    """Toggle guest active/inactive status"""
+    if request.method == 'POST':
+        guest = get_object_or_404(Guest, guest_id=guest_id)
+        guest.is_active = not guest.is_active
+        guest.save()
+        
+        messages.success(request, f"Guest {guest.first_name} {guest.last_name} has been {'activated' if guest.is_active else 'deactivated'}.")
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'is_active': guest.is_active,
+                'message': f"Guest {guest.first_name} {guest.last_name} has been {'activated' if guest.is_active else 'deactivated'}."
+            })
+    
+    return redirect('guest_view')
+
+@login_required
+def guest_search_api(request):
+    """API endpoint for guest search (for AJAX requests)"""
+    query = request.GET.get('q', '')
+    
+    if query:
+        guests = Guest.objects.filter(
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query) |
+            Q(email__icontains=query) |
+            Q(phone__icontains=query) |
+            Q(guest_id__icontains=query)
+        )[:10]  # Limit results
+        
+        results = []
+        for guest in guests:
+            results.append({
+                'id': guest.guest_id,
+                'text': f"{guest.first_name} {guest.last_name} ({guest.email}) - {guest.guest_id}"
+            })
+        
+        return JsonResponse({'results': results})
+    
+    return JsonResponse({'results': []})
 
 
 
