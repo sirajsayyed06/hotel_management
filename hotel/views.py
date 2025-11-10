@@ -8,6 +8,8 @@ from datetime import timedelta, date, datetime
 from django.db.models import Sum
 from django.db.models import Max, Count
 from hotel.models import *
+from django.db.models import Q
+from django.db.models import Prefetch
 
 # Create your views here.
 def login_view(request):
@@ -492,6 +494,191 @@ def guest_view(request):
 
     return render(request, 'guest.html', context)
 
+@login_required
+def payment_management(request):
+    """Payment management view using existing Booking model"""
+    payments = Booking.objects.select_related('guest', 'room').all().order_by('-created_at')
+    
+    # Get filter parameter (same as bookings)
+    time_filter = request.GET.get('filter', 'all')
+    
+    # Calculate date ranges (same as bookings)
+    today = timezone.now().date()
+    
+    if time_filter == 'today':
+        payments = payments.filter(created_at__date=today)
+    elif time_filter == 'week':
+        start_date = today - timezone.timedelta(days=7)
+        payments = payments.filter(created_at__date__gte=start_date)
+    elif time_filter == 'month':
+        start_date = today - timezone.timedelta(days=30)
+        payments = payments.filter(created_at__date__gte=start_date)
+    elif time_filter == '3months':
+        start_date = today - timezone.timedelta(days=90)
+        payments = payments.filter(created_at__date__gte=start_date)
+    elif time_filter == '6months':
+        start_date = today - timezone.timedelta(days=180)
+        payments = payments.filter(created_at__date__gte=start_date)
+    
+    # Calculate payment statistics
+    total_revenue = sum(payment.total_amount for payment in payments)
+    total_paid = sum(payment.amount_paid for payment in payments)
+    total_balance = total_revenue - total_paid
+    
+    # Count payment status
+    fully_paid = payments.filter(amount_paid__gte=models.F('total_amount')).count()
+    partially_paid = payments.filter(amount_paid__gt=0, amount_paid__lt=models.F('total_amount')).count()
+    unpaid = payments.filter(amount_paid=0).count()
+    
+    context = {
+        'payments': payments,
+        'current_filter': time_filter,
+        'total_payments': payments.count(),
+        'total_revenue': total_revenue,
+        'total_paid': total_paid,
+        'total_balance': total_balance,
+        'fully_paid': fully_paid,
+        'partially_paid': partially_paid,
+        'unpaid': unpaid,
+    }
+    return render(request, 'payment_management.html', context)
+
+@login_required
+def export_payments_csv(request):
+    """Export payments to CSV using existing Booking model"""
+    import csv
+    from django.http import HttpResponse
+    
+    # Get the same filter as payment_management
+    time_filter = request.GET.get('filter', 'all')
+    payments = Booking.objects.select_related('guest', 'room').all().order_by('-created_at')
+    
+    # Apply the same filtering logic
+    today = timezone.now().date()
+    
+    if time_filter == 'today':
+        payments = payments.filter(created_at__date=today)
+    elif time_filter == 'week':
+        start_date = today - timezone.timedelta(days=7)
+        payments = payments.filter(created_at__date__gte=start_date)
+    elif time_filter == 'month':
+        start_date = today - timezone.timedelta(days=30)
+        payments = payments.filter(created_at__date__gte=start_date)
+    elif time_filter == '3months':
+        start_date = today - timezone.timedelta(days=90)
+        payments = payments.filter(created_at__date__gte=start_date)
+    elif time_filter == '6months':
+        start_date = today - timezone.timedelta(days=180)
+        payments = payments.filter(created_at__date__gte=start_date)
+    
+    # Create HTTP response with CSV
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="payments_export_{timezone.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+    
+    # Create CSV writer
+    writer = csv.writer(response)
+    
+    # Write headers
+    writer.writerow([
+        'Booking ID', 'Guest Name', 'Guest ID', 'Room Number', 'Room Type',
+        'Check-in Date', 'Check-out Date', 'Nights', 'Total Amount', 
+        'Amount Paid', 'Balance Due', 'Payment Status', 'Booking Date'
+    ])
+    
+    # Write data rows
+    for payment in payments:
+        balance = payment.total_amount - payment.amount_paid
+        if payment.amount_paid >= payment.total_amount:
+            payment_status = "Fully Paid"
+        elif payment.amount_paid > 0:
+            payment_status = "Partially Paid"
+        else:
+            payment_status = "Unpaid"
+        
+        writer.writerow([
+            payment.booking_id,
+            f"{payment.guest.first_name} {payment.guest.last_name}",
+            payment.guest.guest_id,
+            payment.room.room_number,
+            payment.get_room_type_display(),
+            payment.check_in_date,
+            payment.check_out_date,
+            payment.number_of_nights,
+            float(payment.total_amount),
+            float(payment.amount_paid),
+            float(balance),
+            payment_status,
+            payment.created_at.date(),
+        ])
+    
+    return response
+
+@login_required
+def revenue_reports(request):
+    """Simple revenue reports using existing data"""
+    # Get date range from request or default to current month
+    start_date = request.GET.get('start_date', timezone.now().replace(day=1).date())
+    end_date = request.GET.get('end_date', timezone.now().date())
+    
+    if isinstance(start_date, str):
+        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+    if isinstance(end_date, str):
+        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+    
+    # Get bookings in date range
+    bookings = Booking.objects.filter(
+        created_at__date__range=[start_date, end_date]
+    ).select_related('guest', 'room')
+    
+    # Calculate revenue statistics
+    total_revenue = sum(booking.total_amount for booking in bookings)
+    total_paid = sum(booking.amount_paid for booking in bookings)
+    total_balance = total_revenue - total_paid
+    
+    # Revenue by room type
+    revenue_by_room_type = {}
+    for booking in bookings:
+        room_type = booking.get_room_type_display()
+        if room_type not in revenue_by_room_type:
+            revenue_by_room_type[room_type] = 0
+        revenue_by_room_type[room_type] += float(booking.total_amount)
+    
+    context = {
+        'bookings': bookings,
+        'start_date': start_date,
+        'end_date': end_date,
+        'total_revenue': total_revenue,
+        'total_paid': total_paid,
+        'total_balance': total_balance,
+        'revenue_by_room_type': revenue_by_room_type,
+        'total_bookings': bookings.count(),
+    }
+    return render(request, 'revenue_reports.html', context)
+
+
+
+
+@login_required
+def record_payment(request, booking_id):
+    """Simple view to record payments"""
+    booking = get_object_or_404(Booking, booking_id=booking_id)
+    
+    if request.method == 'POST':
+        try:
+            payment_amount = Decimal(request.POST.get('payment_amount', 0))
+            
+            # Add the payment to amount_paid
+            booking.amount_paid += payment_amount
+            booking.save()
+            
+            messages.success(request, f'Payment of ${payment_amount} recorded for booking {booking_id}')
+        except Exception as e:
+            messages.error(request, f'Error recording payment: {str(e)}')
+        
+        return redirect('payment_management')
+    
+    # If not POST, redirect to payment management
+    return redirect('payment_management')
 
 
 
