@@ -680,14 +680,11 @@ def record_payment(request, booking_id):
 @login_required
 def guest_view(request):
     """Main guest list view with search and filter"""
-    guests = Guest.objects.all().prefetch_related(
-        Prefetch(
-            'bookings',
-            queryset=Booking.objects.prefetch_related(
-                Prefetch('checkins', queryset=CheckIn.objects.all().order_by('-actual_check_in'))
-            ).order_by('-check_in_date')
-        )
-    ).order_by('last_name', 'first_name')
+    bookings_qs = Booking.objects.prefetch_related(
+    Prefetch('checkins', queryset=checkins_qs)).order_by('-check_in_date')
+
+guests = Guest.objects.prefetch_related(
+    Prefetch('bookings', queryset=bookings_qs)).order_by('last_name', 'first_name')
     
     # Search functionality
     search_query = request.GET.get('search', '')
@@ -988,6 +985,7 @@ def process_checkin_from_booking(request, booking_id):
         'room': booking.room,
     }
     return render(request, 'checkin_from_booking.html', context)
+
 
 
 
