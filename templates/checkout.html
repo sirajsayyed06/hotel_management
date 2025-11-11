@@ -44,17 +44,6 @@
             </div>
         </div>
 
-        <!-- Display Messages -->
-        {% if messages %}
-        <div class="mb-4">
-            {% for message in messages %}
-            <div class="p-3 rounded-lg {% if message.tags == 'error' %}bg-red-600{% else %}bg-green-600{% endif %} text-white">
-                {{ message }}
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
         <!-- Check-out Sections -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Check-out Form Section -->
@@ -175,8 +164,8 @@
                     <!-- Header -->
                     <div class="text-center border-b-2 border-blue-500 pb-4 mb-5">
                         <h3 class="text-xl font-semibold text-white mb-2">Hotel Management System</h3>
-                        <p class="text-sm text-gray-300">123 Hotel Street, City, State 12345</p>
-                        <p class="text-sm text-gray-300">Phone: +90-9096925781 | Email: info@hotelms.com</p>
+                        <p class="text-sm text-gray-300">Sai Krupa Holiday Home</p>
+                        <p class="text-sm text-gray-300">Phone: +91-81045 87062 | Email: saikrupa09@gmail.com</p>
                     </div>
 
                     <!-- Guest + Check-out Details -->
@@ -406,4 +395,5 @@
     }
 </script>
 </body>
+
 </html>
