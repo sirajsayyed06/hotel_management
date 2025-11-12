@@ -75,12 +75,8 @@ WSGI_APPLICATION = 'hotel_management.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'hoteldb_4csw',
-        'USER': 'pirate',
-        'PASSWORD': 'xmVpmbHetUq8enTzSp0sRZR9pAK4jvCL',
-        'HOST': 'dpg-d495dfshg0os738konig-a',  # or your database host
-        'PORT': '5432',       # default PostgreSQL port
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -133,7 +129,6 @@ MEDIA_ROOT = [ BASE_DIR / 'media' ]
 
 CSRF_TRUSTED_ORIGINS = [
     "https://hotel-management-wx6f.onrender.com",
-    "https://hotel-management-wx6f.onrender.com/rooms/", 
 ]
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -145,12 +140,5 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp-relay.brevo.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "9a959e001@smtp-brevo.com"
-EMAIL_HOST_PASSWORD = "xsmtpsib-4e0254020bf7c6c452853d91b5d5174a24f872f5d33c60a0d4640cb12a7feba0-phcuCFTUvvt7unRX"
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 
